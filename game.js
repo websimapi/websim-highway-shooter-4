@@ -294,8 +294,8 @@ export default class Game {
         this.enemies.forEach(enemy => {
             this.barrels.forEach(barrel => {
                 if (enemy.active && barrel.active && checkCollision(enemy, barrel)) {
-                    this.createMonsterExplosionEffect(enemy);
                     enemy.active = false;
+                    this.createMonsterExplosionEffect(enemy); // Create particles on destruction
                     barrel.hit();
                     
                     if (!barrel.active) {
@@ -432,24 +432,21 @@ export default class Game {
             
             if ((dx * dx + dy * dy) < radiusSq) {
                 if (object.active) {
-                    
+                    object.active = false;
                     // Specific destruction logic
                     if (object instanceof Barrel) {
                          this.score += object.maxHealth;
                          this.audio.play('destroy');
                          if (object.hasPowerUp) this.spawnPowerUp(object.x + object.width / 2, object.y + object.height / 2);
-                         object.active = false;
                     } else if (object instanceof Barrier) {
                         this.score += object.maxHealth * 2;
                         this.audio.play('shatter');
                         this.createShatterEffect(object);
                          if (object.hasPowerUp) this.spawnPowerUp(object.x + object.width / 2, object.y + object.height / 2);
-                         object.active = false;
                     } else if (object instanceof Enemy) {
                         this.score += object.maxHealth * 5;
                         this.audio.play('destroy');
                         this.createMonsterExplosionEffect(object);
-                        object.active = false;
                     }
                 }
             }
@@ -469,16 +466,26 @@ export default class Game {
             this.particles.push(new Particle(this, x, y));
         }
     }
-
-    createMonsterExplosionEffect(source) {
-        const PARTICLE_COUNT = 25;
-        const centerX = source.x + source.width / 2;
-        const centerY = source.y + source.height / 2;
+    
+    createMonsterExplosionEffect(monster) {
+        const PARTICLE_COUNT = 40;
+        const centerX = monster.x + monster.width / 2;
+        const centerY = monster.y + monster.height / 2;
+        const colors = ['#8BC34A', '#4CAF50', '#CDDC39', '#C0CA33']; // Shades of slime green
 
         for (let i = 0; i < PARTICLE_COUNT; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 4 + 1;
+            const speedX = Math.cos(angle) * speed;
+            const speedY = Math.sin(angle) * speed;
+
             this.particles.push(new Particle(this, centerX, centerY, {
-                baseColor: '50, 200, 50', // Greenish
+                speedX: speedX,
+                speedY: speedY,
+                size: Math.random() * 6 + 3,
+                color: colors[Math.floor(Math.random() * colors.length)],
                 gravity: 0.05,
+                lifespan: Math.random() * 40 + 30
             }));
         }
     }
