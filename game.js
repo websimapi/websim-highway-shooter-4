@@ -282,6 +282,7 @@ export default class Game {
                         this.score += enemy.maxHealth * 5; // Enemies are worth more
                         this.onScoreUpdate(this.score);
                         this.audio.play('destroy');
+                        this.createMonsterExplosionEffect(enemy);
                     } else {
                         this.audio.play('hit');
                     }
@@ -293,6 +294,7 @@ export default class Game {
         this.enemies.forEach(enemy => {
             this.barrels.forEach(barrel => {
                 if (enemy.active && barrel.active && checkCollision(enemy, barrel)) {
+                    this.createMonsterExplosionEffect(enemy);
                     enemy.active = false;
                     barrel.hit();
                     
@@ -430,20 +432,24 @@ export default class Game {
             
             if ((dx * dx + dy * dy) < radiusSq) {
                 if (object.active) {
-                    object.active = false;
+                    
                     // Specific destruction logic
                     if (object instanceof Barrel) {
                          this.score += object.maxHealth;
                          this.audio.play('destroy');
                          if (object.hasPowerUp) this.spawnPowerUp(object.x + object.width / 2, object.y + object.height / 2);
+                         object.active = false;
                     } else if (object instanceof Barrier) {
                         this.score += object.maxHealth * 2;
                         this.audio.play('shatter');
                         this.createShatterEffect(object);
                          if (object.hasPowerUp) this.spawnPowerUp(object.x + object.width / 2, object.y + object.height / 2);
+                         object.active = false;
                     } else if (object instanceof Enemy) {
                         this.score += object.maxHealth * 5;
                         this.audio.play('destroy');
+                        this.createMonsterExplosionEffect(object);
+                        object.active = false;
                     }
                 }
             }
@@ -461,6 +467,19 @@ export default class Game {
             const x = source.x + Math.random() * source.width;
             const y = source.y + Math.random() * source.height;
             this.particles.push(new Particle(this, x, y));
+        }
+    }
+
+    createMonsterExplosionEffect(source) {
+        const PARTICLE_COUNT = 25;
+        const centerX = source.x + source.width / 2;
+        const centerY = source.y + source.height / 2;
+
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            this.particles.push(new Particle(this, centerX, centerY, {
+                baseColor: '50, 200, 50', // Greenish
+                gravity: 0.05,
+            }));
         }
     }
     
