@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 export default class Particle {
     constructor(game, x, y, options = {}) {
         this.game = game;
